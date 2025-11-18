@@ -1,0 +1,18 @@
+<?php
+echo '<h2 style="margin-top:0">MynTex CMS</h2>
+<a href="dashboard.php">📊 Tổng quan</a>
+<a href="hero-edit.php">🎯 Hero</a>
+<a href="timeline.php">📅 Timeline</a>
+<a href="services.php">🛠️ Services</a>
+<a href="skills.php">⭐ Skills</a>
+<a href="projects.php">🏗️ Projects</a>
+<a href="testimonials.php">💬 Testimonials</a>
+<a href="contact.php">📞 Contact</a>
+<a href="contact-messages.php">📧 Messages</a>
+<a href="footer.php">📄 Footer</a>
+<hr style="border-color:#1f2937">
+<a href="css-editor.php">🎨 CSS Editor</a>
+<a href="js-editor.php">⚡ JS Editor</a>
+<a href="file-manager.php">📁 File Manager</a>
+<hr style="border-color:#1f2937">
+<a href="logout.php">🚪 Đăng xuất</a>';
