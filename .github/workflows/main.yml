@@ -1,1 +1,26 @@
+name: Auto deploy to cPanel via FTP
 
+on:
+  push:
+    branches:
+      - main   # branch nào thì deploy, thường là main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/   # thư mục web trên hosting
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/**
