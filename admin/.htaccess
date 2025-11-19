@@ -1,0 +1,35 @@
+# Admin folder security
+
+# Deny access to all files by default
+<Files ~ "\.(php|txt|log|sql)$">
+    Order deny,allow
+    Deny from all
+</Files>
+
+# Allow access only to necessary files
+<FilesMatch "^(login|logout|dashboard|projects|services|skills|testimonials|contact|file-manager|css-editor|js-editor|hero-edit|timeline|import-projects|project-media)\.php$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Allow access to layout files (included files)
+<FilesMatch "^(_layout-header|_layout-footer|_menu|bootstrap|config)\.php$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+# Protect styles.css
+<Files "styles.css">
+    Order allow,deny
+    Allow from all
+</Files>
+
+# Prevent directory listing
+Options -Indexes
+
+# Additional security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

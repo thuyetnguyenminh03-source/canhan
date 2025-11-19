@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Xem Full Direct</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body { 
+            background: #f5f5f5; 
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .project-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+        .p-media {
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+        .p-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .p-view {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .p-view:hover {
+            background: rgba(0,0,0,0.9);
+        }
+        .p-body {
+            padding: 20px;
+        }
+        .p-body h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .p-tags {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+        .status {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .status h2 {
+            color: #0c5460;
+            margin-top: 0;
+        }
+        .console {
+            background: #263238;
+            color: #aed581;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            height: 150px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Link "Xem Full" Trực Tiếp</h1>
+        
+        <div class="status">
+            <h2>📋 Hướng dẫn test:</h2>
+            <p><strong>Click vào nút "Xem full"</strong> trong các dự án bên dưới:</p>
+            <ul>
+                <li>Nếu link hoạt động: Bạn sẽ chuyển đến trang chi tiết dự án</li>
+                <li>Nếu link không hoạt động: Có thể có lỗi JavaScript hoặc CSS</li>
+                <li>Xem console log bên dưới để theo dõi sự kiện click</li>
+            </ul>
+        </div>
+
+        <div class="test-grid" id="testProjects">
+            <!-- Projects will be inserted here -->
+        </div>
+
+        <div class="console" id="console">
+            <strong>Console Log:</strong><br>
+            <div id="logContent">Đang khởi tạo...</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#aed581';
+            logContent.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span><br>`;
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        // Mock project data
+        const mockProjects = [
+            {
+                id: 1,
+                title_vi: "Dự án Blanca",
+                title_en: "Blanca Project",
+                slug: "blanca",
+                cover_url: "assets/img/projects/blanca/blanca-cover.jpg",
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 2,
+                title_vi: "Dự án CaraWorld",
+                title_en: "CaraWorld Project", 
+                slug: "caraworld",
+                cover_url: "assets/img/projects/caraworld/caraworld-cover.jpg",
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 3,
+                title_vi: "Dự án Celadon",
+                title_en: "Celadon Project",
+                slug: "celadon", 
+                cover_url: "assets/img/projects/celadon/celadon-cover.jpg",
+                tags: "#brand, #realestate"
+            }
+        ];
+
+        function loadTestProjects() {
+            const projectGrid = document.getElementById('testProjects');
+            
+            log('Đang tạo ' + mockProjects.length + ' dự án test...');
+            
+            mockProjects.forEach(project => {
+                const card = document.createElement('article');
+                card.className = 'project-card';
+                
+                const fallbackImage = 'assets/img/placeholder-4.svg';
+                
+                card.innerHTML = `
+                    <div class="p-media">
+                        <img alt="${project.title_vi}" src="${project.cover_url}" onerror="this.onerror=null;this.src='${fallbackImage}';"/>
+                        <a class="p-view" href="/projects/template.html?slug=${project.slug}" target="_self">Xem full</a>
+                    </div>
+                    <div class="p-body">
+                        <h3>${project.title_vi}</h3>
+                        <p class="p-tags">${project.tags.split(',').join(' · ')}</p>
+                    </div>
+                `;
+                
+                projectGrid.appendChild(card);
+            });
+            
+            // Add click event listeners
+            document.querySelectorAll('.p-view').forEach((link, index) => {
+                link.addEventListener('click', function(e) {
+                    log(`✅ Link ${index + 1} clicked: ${this.href}`);
+                    log(`🔄 Đang chuyển đến: ${this.getAttribute('href')}`);
+                });
+                
+                log(`✅ Đã tạo link ${index + 1}: ${link.href}`);
+            });
+            
+            log('✅ Hoàn thành tạo dự án test!', 'success');
+            log('💡 Click vào các nút "Xem full" để test chức năng chuyển trang');
+        }
+
+        // Check for any global issues
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Trang test đã tải xong');
+            
+            // Check for JavaScript errors
+            window.addEventListener('error', function(e) {
+                log('❌ Lỗi JavaScript: ' + e.message, 'error');
+            });
+            
+            // Check for any preventDefault issues
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A' && e.target.classList.contains('p-view')) {
+                    log(`🖱️ Click detected on link: ${e.target.href}`);
+                    log(`📍 Target: ${e.target.target || 'self'}`);
+                }
+            });
+            
+            loadTestProjects();
+        });
+    </script>
+</body>
+</html>

@@ -5,18 +5,21 @@ require_login();
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
-// Fetch footer info (single record)
-$stmt = $pdo->query('SELECT * FROM footer_info ORDER BY id DESC LIMIT 1');
-$footer = $stmt->fetch() ?: [
+$footer = [
   'id' => null,
   'copyright_vi' => '',
   'copyright_en' => '',
   'extra_html' => ''
 ];
-
 $error_info = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_form'] ?? '') === 'info') {
-  try {
+
+/*
+try {
+  // Fetch footer info (single record)
+  $stmt = $pdo->query('SELECT * FROM footer_info ORDER BY id DESC LIMIT 1');
+  $footer = $stmt->fetch() ?: $footer;
+
+  if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_form'] ?? '') === 'info') {
     verify_csrf_or_die();
     $data = [
       'copyright_vi' => trim($_POST['copyright_vi'] ?? ''),
@@ -35,10 +38,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_form'] ?? '') === 'info')
       $stmt->execute($data);
       redirect_with_message('footer.php', 'Đã tạo Footer info.');
     }
-  } catch (Throwable $e) {
-    $error_info = 'Lỗi: ' . $e->getMessage();
+  }
+} catch (Throwable $e) {
+  // Check if the error is about a missing table
+  if (strpos($e->getMessage(), "Base table or view not found") !== false || strpos($e->getMessage(), "doesn't exist") !== false) {
+      $error_info = 'Lỗi: Bảng `footer_info` không tồn tại. Vui lòng cập nhật schema database.';
+  } else {
+      $error_info = 'Lỗi: ' . $e->getMessage();
   }
 }
+*/
 
 // Footer links management
 $error_links = '';

@@ -1,6 +1,11 @@
 <?php
 echo '<h2 style="margin-top:0">MynTex CMS</h2>
 <a href="dashboard.php">📊 Tổng quan</a>
+<hr style="border-color:#1f2937">
+<a href="security-dashboard.php">🔐 Security Dashboard</a>
+<a href="password-manager.php">🔑 Password Manager</a>
+<a href="change-admin-password.php">🔄 Change Password</a>
+<hr style="border-color:#1f2937">
 <a href="hero-edit.php">🎯 Hero</a>
 <a href="timeline.php">📅 Timeline</a>
 <a href="services.php">🛠️ Services</a>

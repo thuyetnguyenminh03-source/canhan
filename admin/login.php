@@ -72,10 +72,13 @@ require __DIR__ . '/_layout-header.php';
               </div>
             </form>
 
-            <div class="mt-6 text-center">
+            <div class="mt-6 text-center space-y-2">
               <p class="text-sm text-gray-500">
-                Tài khoản mặc định: <strong>admin</strong> / Mật khẩu: <strong>admin123</strong>
+                Tài khoản mặc định: <strong>admin</strong>
               </p>
+              <a href="forgot-password.php" class="text-sm text-blue-500 hover:text-blue-700 transition-colors">
+                <i class="fas fa-key mr-1"></i>Quên mật khẩu?
+              </a>
             </div>
           </div>
         </div>

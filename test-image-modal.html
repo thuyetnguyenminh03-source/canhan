@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Image Modal - Portfolio</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body { 
+            background: #f5f5f5; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .test-project-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .test-project-card:hover {
+            transform: translateY(-5px);
+        }
+        .test-media {
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+        .test-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .test-media img:hover {
+            transform: scale(1.05);
+        }
+        .test-body {
+            padding: 20px;
+        }
+        .test-body h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .test-body p {
+            color: #666;
+            margin: 0;
+        }
+        .instructions {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .instructions h2 {
+            color: #0c5460;
+            margin-top: 0;
+        }
+        .instructions ul {
+            color: #0c5460;
+            margin-bottom: 0;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🖼️ Test Image Modal Functionality</h1>
+        
+        <div class="instructions">
+            <h2>📋 Test Instructions:</h2>
+            <ul>
+                <li><strong>Click on any project image</strong> to open the image modal</li>
+                <li><strong>Use arrow keys (← →)</strong> to navigate between images</li>
+                <li><strong>Press ESC key</strong> to close the modal</li>
+                <li><strong>Click outside the image</strong> to close the modal</li>
+                <li><strong>Click the X button</strong> to close the modal</li>
+            </ul>
+        </div>
+
+        <div class="test-grid" id="testProjects">
+            <!-- Test projects will be inserted here -->
+        </div>
+    </div>
+
+    <script src="assets/js/image-modal.js"></script>
+    <script>
+        // Mock project data for testing
+        const mockProjects = [
+            {
+                id: 1,
+                title_vi: "Dự án Blanca",
+                title_en: "Blanca Project",
+                slug: "blanca",
+                cover_url: "assets/img/projects/blanca/blanca-cover.jpg",
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 2,
+                title_vi: "Dự án CaraWorld",
+                title_en: "CaraWorld Project", 
+                slug: "caraworld",
+                cover_url: "assets/img/projects/caraworld/caraworld-cover.jpg",
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 3,
+                title_vi: "Dự án Celadon",
+                title_en: "Celadon Project",
+                slug: "celadon", 
+                cover_url: "assets/img/projects/celadon/celadon-cover.jpg",
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 4,
+                title_vi: "Dự án Eco",
+                title_en: "Eco Project",
+                slug: "eco",
+                cover_url: "assets/img/projects/eco/eco-cover.jpg", 
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 5,
+                title_vi: "Dự án La Tien",
+                title_en: "La Tien Project",
+                slug: "latien",
+                cover_url: "assets/img/projects/latien/latien-cover.jpg",
+                tags: "#brand, #realestate"
+            },
+            {
+                id: 6,
+                title_vi: "Dự án TGC",
+                title_en: "TGC Project", 
+                slug: "tgc",
+                cover_url: "assets/img/projects/tgc/tgc-cover.jpg",
+                tags: "#brand, #realestate"
+            }
+        ];
+
+        // Initialize the image modal
+        window.imageModal = new ImageModal();
+
+        // Load test projects
+        function loadTestProjects() {
+            const projectGrid = document.getElementById('testProjects');
+            
+            mockProjects.forEach(project => {
+                const card = document.createElement('article');
+                card.className = 'test-project-card';
+                
+                const fallbackImage = 'assets/img/placeholder-4.svg';
+                
+                card.innerHTML = `
+                    <div class="test-media">
+                        <img alt="${project.title_vi}" 
+                             src="${project.cover_url}" 
+                             onerror="this.onerror=null;this.src='${fallbackImage}';"
+                             data-project="${project.slug}"/>
+                    </div>
+                    <div class="test-body">
+                        <h3>${project.title_vi}</h3>
+                        <p class="p-tags">${project.tags.split(',').join(' · ')}</p>
+                    </div>
+                `;
+                
+                projectGrid.appendChild(card);
+            });
+            
+            // Make all project images clickable for modal
+            document.querySelectorAll('.test-media img').forEach(img => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', function() {
+                    const allProjectImages = document.querySelectorAll('.test-media img');
+                    const index = Array.from(allProjectImages).indexOf(this);
+                    window.imageModal.open(this, index, allProjectImages);
+                });
+            });
+            
+            console.log(`Loaded ${mockProjects.length} test projects with clickable images`);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTestProjects();
+            console.log('✅ Image modal test page loaded successfully!');
+            console.log('💡 Click on any project image to test the modal functionality');
+        });
+    </script>
+</body>
+</html>

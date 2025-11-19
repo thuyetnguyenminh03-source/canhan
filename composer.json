@@ -1,0 +1,7 @@
+{
+    "name": "portfolio/admin-system",
+    "description": "Portfolio Admin System with Email Support",
+    "require": {
+        "phpmailer/phpmailer": "^6.8"
+    }
+}

@@ -7,13 +7,14 @@ error_reporting(E_ALL);
 
 $error = '';
 $editing = null; // Khởi tạo để tránh Notice
+$items = [];
 
 // Lấy danh sách dự án
 try {
   $items = $pdo->query('
-    SELECT id, title_vi, title_en, slug, description_vi, description_en, sort_order
+    SELECT id, title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4
     FROM projects
-    ORDER BY sort_order, id
+    ORDER BY sort_order ASC, id DESC
   ')->fetchAll();
 } catch (Throwable $e) {
   $error = 'Lỗi: ' . $e->getMessage();
@@ -30,7 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $slug = trim($_POST['slug'] ?? '');
     $description_vi = trim($_POST['description_vi'] ?? '');
     $description_en = trim($_POST['description_en'] ?? '');
-    $sort_order = (int)($_POST['sort_order'] ?? 0);
+    $meta_role = trim($_POST['meta_role'] ?? '');
+    $meta_time = trim($_POST['meta_time'] ?? '');
+    $meta_tools = trim($_POST['meta_tools'] ?? '');
+    $kpi1 = trim($_POST['kpi1'] ?? '');
+    $kpi2 = trim($_POST['kpi2'] ?? '');
+    $kpi3 = trim($_POST['kpi3'] ?? '');
+    $kpi4 = trim($_POST['kpi4'] ?? '');
 
     if ($title_vi === '' || $slug === '') {
       $error = 'Tiêu đề (VI) và Slug không được trống.';
@@ -38,18 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if ($id > 0) {
         $stmt = $pdo->prepare('
           UPDATE projects
-          SET title_vi = ?, title_en = ?, slug = ?, description_vi = ?, description_en = ?, sort_order = ?
+          SET title_vi = ?, title_en = ?, slug = ?, description_vi = ?, description_en = ?,
+              meta_role = ?, meta_time = ?, meta_tools = ?, kpi1 = ?, kpi2 = ?, kpi3 = ?, kpi4 = ?
           WHERE id = ?
         ');
-        $stmt->execute([$title_vi, $title_en, $slug, $description_vi, $description_en, $sort_order, $id]);
+        $stmt->execute([$title_vi, $title_en, $slug, $description_vi, $description_en, 
+                       $meta_role, $meta_time, $meta_tools, $kpi1, $kpi2, $kpi3, $kpi4, $id]);
         redirect_with_message('projects.php', 'Đã cập nhật dự án.');
       } else {
         $stmt = $pdo->prepare('
-          INSERT INTO projects (title_vi, title_en, slug, description_vi, description_en, sort_order)
-          VALUES (?,?,?,?,?,?)
+          INSERT INTO projects (title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         ');
-        $stmt->execute([$title_vi, $title_en, $slug, $description_vi, $description_en, $sort_order]);
-        redirect_with_message('projects.php', 'Đã thêm dự án.');
+        $stmt->execute([$title_vi, $title_en, $slug, $description_vi, $description_en, 
+                       $meta_role, $meta_time, $meta_tools, $kpi1, $kpi2, $kpi3, $kpi4]);
+        redirect_with_message('projects.php', 'Đã thêm dự án mới.');
       }
     }
   } catch (Throwable $e) {
@@ -58,9 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Xóa
-if (isset($_GET['delete'])) {
+if (isset($_POST['delete'])) {
   try {
-    $id = (int)$_GET['delete'];
+    verify_csrf_or_die();
+    $id = (int)$_POST['delete'];
     $pdo->prepare('DELETE FROM projects WHERE id=?')->execute([$id]);
     redirect_with_message('projects.php', 'Đã xóa dự án.');
   } catch (Throwable $e) {
@@ -73,7 +84,7 @@ if (isset($_GET['edit'])) {
   try {
     $id = (int)$_GET['edit'];
     $stmt = $pdo->prepare('
-      SELECT id, title_vi, title_en, slug, description_vi, description_en, sort_order
+      SELECT id, title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4
       FROM projects
       WHERE id = ?
     ');
@@ -131,21 +142,12 @@ require __DIR__ . '/_layout-header.php';
             <input type="text" name="title_en" value="<?= htmlspecialchars($editing['title_en'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Enter English title">
           </div>
 
-          <div>
+          <div class="md:col-span-2">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Slug *</label>
             <input type="text" name="slug" value="<?= htmlspecialchars($editing['slug'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="ten-du-an" required>
             <p class="text-xs text-gray-500 mt-2 flex items-center">
               <i class="fas fa-info-circle mr-1"></i>
               Slug dùng để tạo URL dự án (chỉ chữ thường, số, dấu gạch ngang)
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Thứ tự</label>
-            <input type="number" name="sort_order" value="<?= (int)($editing['sort_order'] ?? 0) ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="0">
-            <p class="text-xs text-gray-500 mt-2 flex items-center">
-              <i class="fas fa-sort-numeric-down mr-1"></i>
-              Số nhỏ hơn hiển thị trước
             </p>
           </div>
 
@@ -157,6 +159,77 @@ require __DIR__ . '/_layout-header.php';
           <div class="md:col-span-2">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Mô tả (EN)</label>
             <textarea name="description_en" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Project description in English"><?= htmlspecialchars($editing['description_en'] ?? '') ?></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Vai trò</label>
+            <input type="text" name="meta_role" value="<?= htmlspecialchars($editing['meta_role'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: Thiết kế đồ họa, Brand Identity">
+            <p class="text-xs text-gray-500 mt-2 flex items-center">
+              <i class="fas fa-user-tag mr-1"></i>
+              Vai trò của bạn trong dự án này
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Thời gian</label>
+            <input type="text" name="meta_time" value="<?= htmlspecialchars($editing['meta_time'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: 2 tuần, Tháng 6/2024">
+            <p class="text-xs text-gray-500 mt-2 flex items-center">
+              <i class="fas fa-calendar-alt mr-1"></i>
+              Thời gian thực hiện dự án
+            </p>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Công cụ</label>
+            <input type="text" name="meta_tools" value="<?= htmlspecialchars($editing['meta_tools'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: Photoshop, Illustrator, Figma">
+            <p class="text-xs text-gray-500 mt-2 flex items-center">
+              <i class="fas fa-tools mr-1"></i>
+              Các công cụ phần mềm đã sử dụng
+            </p>
+          </div>
+
+          <div class="md:col-span-2 border-t border-gray-200 pt-6 mt-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+              Kết quả chính (KPIs)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Kết quả 1</label>
+                <input type="text" name="kpi1" value="<?= htmlspecialchars($editing['kpi1'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: Tăng 150% lượt truy cập">
+                <p class="text-xs text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-trophy mr-1"></i>
+                  Kết quả định lượng hoặc chất lượng
+                </p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Kết quả 2</label>
+                <input type="text" name="kpi2" value="<?= htmlspecialchars($editing['kpi2'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: Giảm 40% chi phí vận hành">
+                <p class="text-xs text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-trophy mr-1"></i>
+                  Kết quả định lượng hoặc chất lượng
+                </p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Kết quả 3</label>
+                <input type="text" name="kpi3" value="<?= htmlspecialchars($editing['kpi3'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: 95% khách hàng hài lòng">
+                <p class="text-xs text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-trophy mr-1"></i>
+                  Kết quả định lượng hoặc chất lượng
+                </p>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Kết quả 4</label>
+                <input type="text" name="kpi4" value="<?= htmlspecialchars($editing['kpi4'] ?? '') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ví dụ: Hoàn thành trước deadline 1 tuần">
+                <p class="text-xs text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-trophy mr-1"></i>
+                  Kết quả định lượng hoặc chất lượng
+                </p>
+              </div>
+            </div>
           </div>
 
           <div class="md:col-span-2 flex items-center space-x-3 pt-4">
@@ -183,7 +256,7 @@ require __DIR__ . '/_layout-header.php';
           <div class="flex items-center space-x-3">
             <span class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg">
               <i class="fas fa-folder mr-2"></i>
-              Tổng: <?= count($items) ?>
+              Tổng: <?= isset($items) ? count($items) : 0 ?>
             </span>
           </div>
         </div>
@@ -195,12 +268,14 @@ require __DIR__ . '/_layout-header.php';
                 <th class="text-left p-4 font-bold">Tiêu đề (VI)</th>
                 <th class="text-left p-4 font-bold">Tiêu đề (EN)</th>
                 <th class="text-left p-4 font-bold">Slug</th>
-                <th class="text-left p-4 font-bold">Thứ tự</th>
+                <th class="text-left p-4 font-bold">Vai trò</th>
+                <th class="text-left p-4 font-bold">Thời gian</th>
+                <th class="text-left p-4 font-bold">Công cụ</th>
                 <th class="text-left p-4 font-bold rounded-tr-xl">Hành động</th>
               </tr>
             </thead>
             <tbody>
-              <?php foreach ($items as $it): ?>
+              <?php if (!empty($items)): foreach ($items as $it): ?>
                 <tr class="border-b border-gray-100 hover:bg-blue-50/50 transition-colors">
                   <td class="p-4">
                     <span class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-lg inline-flex items-center justify-center font-bold text-xs">
@@ -214,10 +289,14 @@ require __DIR__ . '/_layout-header.php';
                       <?= htmlspecialchars($it['slug']) ?>
                     </span>
                   </td>
-                  <td class="p-4">
-                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
-                      <?= (int)$it['sort_order'] ?>
-                    </span>
+                  <td class="p-4 text-gray-600 text-xs">
+                    <?= htmlspecialchars($it['meta_role'] ?: '-') ?>
+                  </td>
+                  <td class="p-4 text-gray-600 text-xs">
+                    <?= htmlspecialchars($it['meta_time'] ?: '-') ?>
+                  </td>
+                  <td class="p-4 text-gray-600 text-xs">
+                    <?= htmlspecialchars($it['meta_tools'] ?: '-') ?>
                   </td>
                   <td class="p-4">
                     <div class="flex items-center space-x-2">
@@ -227,16 +306,19 @@ require __DIR__ . '/_layout-header.php';
                       <a href="?edit=<?= $it['id'] ?>" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all inline-flex items-center text-xs font-semibold shadow-md hover:shadow-lg">
                         <i class="fas fa-edit mr-1"></i> Sửa
                       </a>
-                      <a href="?delete=<?= $it['id'] ?>" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all inline-flex items-center text-xs font-semibold shadow-md hover:shadow-lg" onclick="return confirm('Bạn có chắc muốn xóa dự án này?')">
-                        <i class="fas fa-trash mr-1"></i> Xóa
-                      </a>
+                      <form method="post" class="inline" onsubmit="return confirm('Bạn có chắc muốn xóa dự án này?')">
+                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                        <input type="hidden" name="delete" value="<?= $it['id'] ?>">
+                        <button type="submit" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all inline-flex items-center text-xs font-semibold shadow-md hover:shadow-lg">
+                          <i class="fas fa-trash mr-1"></i> Xóa
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>
-              <?php endforeach; ?>
-              <?php if (empty($items)): ?>
+              <?php endforeach; else: ?>
                 <tr>
-                  <td colspan="6" class="p-12 text-center">
+                  <td colspan="5" class="p-12 text-center">
                     <div class="flex flex-col items-center">
                       <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-folder-open text-gray-400 text-3xl"></i>
@@ -250,3 +332,6 @@ require __DIR__ . '/_layout-header.php';
             </tbody>
           </table>
         </div>
+      </div>
+
+<?php require __DIR__ . '/_layout-footer.php'; ?>

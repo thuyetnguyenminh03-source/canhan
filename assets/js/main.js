@@ -896,7 +896,9 @@ const renderCaseMedia = async () => {
       const card = document.createElement('article');
       card.className = 'gallery-card';
       const img = document.createElement('img');
-      const src = file.startsWith('http') ? file : `../assets/img/projects/${caseId}/${file}`;
+      const src = (typeof file === 'string' ? file : file.url).startsWith('http') ? 
+        (typeof file === 'string' ? file : file.url) : 
+        `../assets/img/projects/${caseId}/${typeof file === 'string' ? file : file.url}`;
       img.src = src;
       img.alt = `${titleLookup} - ${tagText} ${index + 1}`;
       card.appendChild(img);
@@ -1350,14 +1352,21 @@ const applyCardTilt = () => {
 
 const rebuildProjectTrack = () => {
   if (!projectGrid) return;
-  const dataset =
-    originalProjectCards.length === 0
-      ? []
-      : originalProjectCards.filter((card) => activeProjectFilter === 'all' || card.cat === activeProjectFilter);
-  const source = dataset.length ? dataset : originalProjectCards;
-  projectGrid.innerHTML = source.map((item) => item.template).join('');
-  if (projectGrid.children.length < 2) {
-    projectGrid.innerHTML += source.map((item) => item.template).join('');
+  if (originalProjectCards.length === 0 && projectGrid.children.length) {
+    currentProjectCards = [...projectGrid.querySelectorAll('.project-card')];
+    currentProjectCards.forEach((card) => card.classList.remove('reveal-up', 'visible'));
+    sliderOffset = 0;
+    projectGrid.style.transform = 'translateX(0)';
+    sliderGap = parseFloat(getComputedStyle(projectGrid).columnGap || getComputedStyle(projectGrid).gap || 0) || 0;
+    applyCardTilt();
+    return;
+  }
+  const dataset = originalProjectCards.filter((card) => activeProjectFilter === 'all' || card.cat === activeProjectFilter);
+  if (dataset.length > 0) {
+    projectGrid.innerHTML = dataset.map((item) => item.template).join('');
+    if (projectGrid.children.length < 2) {
+      projectGrid.innerHTML += dataset.map((item) => item.template).join('');
+    }
   }
   currentProjectCards = [...projectGrid.querySelectorAll('.project-card')];
   currentProjectCards.forEach((card) => card.classList.remove('reveal-up', 'visible'));
@@ -1401,7 +1410,9 @@ runProjectSlider();
 window.addEventListener(
   'resize',
   throttle(() => {
-    sliderGap = parseFloat(getComputedStyle(projectGrid).columnGap || getComputedStyle(projectGrid).gap || 0) || 0;
+    if (projectGrid) {
+      sliderGap = parseFloat(getComputedStyle(projectGrid).columnGap || getComputedStyle(projectGrid).gap || 0) || 0;
+    }
   }, 300)
 );
 
@@ -1432,15 +1443,17 @@ let startX = 0;
 let currentX = 0;
 let dragOffset = 0;
 
-projectGrid.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  startX = e.clientX;
-  currentX = e.clientX;
-  dragOffset = sliderOffset;
-  sliderPaused = true;
-  projectGrid.style.cursor = 'grabbing';
-  e.preventDefault();
-});
+if (projectGrid) {
+  projectGrid.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    currentX = e.clientX;
+    dragOffset = sliderOffset;
+    sliderPaused = true;
+    projectGrid.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+}
 
 document.addEventListener('mousemove', (e) => {
   if (!isDragging) return;
@@ -1458,14 +1471,16 @@ document.addEventListener('mouseup', () => {
   projectGrid.style.cursor = '';
 });
 
-projectGrid.addEventListener('touchstart', (e) => {
-  isDragging = true;
-  startX = e.touches[0].clientX;
-  currentX = e.touches[0].clientX;
-  dragOffset = sliderOffset;
-  sliderPaused = true;
-  e.preventDefault();
-}, { passive: false });
+if (projectGrid) {
+  projectGrid.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    currentX = e.touches[0].clientX;
+    dragOffset = sliderOffset;
+    sliderPaused = true;
+    e.preventDefault();
+  }, { passive: false });
+}
 
 document.addEventListener('touchmove', (e) => {
   if (!isDragging) return;
@@ -1528,6 +1543,7 @@ const closeModal = () => {
   lastFocusedElement?.focus();
 };
 
+/*
 document.addEventListener('click', (event) => {
   const btn = event.target.closest('.p-view');
   if (!btn) return;
@@ -1538,6 +1554,7 @@ document.addEventListener('click', (event) => {
   event.preventDefault();
   openModal(id, btn);
 });
+*/
 
 modal?.addEventListener('click', (event) => {
   if (event.target.dataset.close === 'true') {

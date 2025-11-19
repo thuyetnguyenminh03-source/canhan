@@ -1,4 +1,12 @@
 <?php
+// Enable debug mode - show all errors
+define('DEBUG_MODE', true);
+if (DEBUG_MODE) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+}
+
 $configPath = __DIR__ . '/config.php';
 if (!file_exists($configPath)) {
     exit('Missing admin/config.php');
