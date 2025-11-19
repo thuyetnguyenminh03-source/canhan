@@ -1,5 +1,5 @@
--- Admin users (giữ bảng hiện có, thêm nếu thiếu)
-CREATE TABLE IF NOT EXISTS admin_users (
+-- Admin users
+CREATE TABLE IF NOT EXISTS admins (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,

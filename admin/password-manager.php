@@ -43,8 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
             
             // Cập nhật mật khẩu
-            $stmt = $pdo->prepare("UPDATE admin_users SET password_hash = ? WHERE id = 1");
-            $stmt->execute([$hashed_password]);
+             $stmt = $pdo->prepare("UPDATE admins SET password_hash = ? WHERE id = 1");
+             $stmt->execute([$hashed_password]);
             
             // Ghi log
             $logMessage = sprintf(
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reset_token = bin2hex(random_bytes(32));
             $reset_expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
             
-            $stmt = $pdo->prepare("UPDATE admin_users SET reset_token = ?, reset_expires = ? WHERE id = 1");
+            $stmt = $pdo->prepare("UPDATE admins SET reset_token = ?, reset_expires = ? WHERE id = 1");
             $stmt->execute([$reset_token, $reset_expires]);
             
             $reset_link = "http://localhost:8000/admin/forgot-password.php?token=" . $reset_token;
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Lấy thông tin admin
-$stmt = $pdo->query("SELECT id, username, created_at, reset_expires FROM admin_users WHERE id = 1");
+$stmt = $pdo->query("SELECT id, username, created_at, reset_expires FROM admins WHERE id = 1");
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Kiểm tra xem có link reset nào đang hoạt động không

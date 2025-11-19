@@ -35,7 +35,7 @@ function getLoginAttempts($pdo, $limit = 20) {
         $stmt = $pdo->prepare("
             SELECT al.*, au.username 
             FROM admin_login_attempts al
-            LEFT JOIN admin_users au ON al.admin_id = au.id
+            LEFT JOIN admins au ON al.admin_id = au.id
             ORDER BY al.attempt_time DESC 
             LIMIT ?
         ");
@@ -79,12 +79,12 @@ function getSecurityStats($pdo) {
         $stats['today_failed_ips'] = $stmt->fetchColumn();
         
         // Total admin users
-        $stats['total_admins'] = $pdo->query("SELECT COUNT(*) FROM admin_users")->fetchColumn();
+        $stats['total_admins'] = $pdo->query("SELECT COUNT(*) FROM admins")->fetchColumn();
         
         // Admins with recent password changes (last 30 days)
         $stmt = $pdo->prepare("
             SELECT COUNT(*) as count 
-            FROM admin_users 
+            FROM admins 
             WHERE updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ");
         $stmt->execute();

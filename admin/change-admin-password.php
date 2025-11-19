@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 // Get current admin data
-                $stmt = $pdo->prepare("SELECT id, password_hash FROM admin_users WHERE username = ?");
+                $stmt = $pdo->prepare("SELECT id, password_hash FROM admins WHERE username = ?");
                 $stmt->execute([$_SESSION['admin_user']]);
                 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
                 
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
                     
                     // Update password in database
-                    $stmt = $pdo->prepare("UPDATE admin_users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+                     $stmt = $pdo->prepare("UPDATE admins SET password_hash = ?, updated_at = NOW() WHERE id = ?");
                     $stmt->execute([$new_password_hash, $admin['id']]);
                     
                     // Log the password change

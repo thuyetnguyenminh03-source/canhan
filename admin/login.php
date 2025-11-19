@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     if ($username && $password) {
-        $stmt = $pdo->prepare('SELECT * FROM admin_users WHERE username = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT * FROM admins WHERE username = ? LIMIT 1');
         $stmt->execute([$username]);
         $user = $stmt->fetch();
         if ($user && password_verify($password, $user['password_hash'])) {

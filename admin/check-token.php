@@ -10,7 +10,7 @@ if ($token) {
     try {
         // Kiểm tra token có hợp lệ không - sử dụng PHP time để tránh lỗi múi giờ
         $current_time = date('Y-m-d H:i:s');
-        $stmt = $pdo->prepare("SELECT id, username, email, reset_expires FROM admin_users WHERE reset_token = ? AND reset_expires > ?");
+        $stmt = $pdo->prepare("SELECT id, username, email, reset_expires FROM admins WHERE reset_token = ? AND reset_expires > ?");
         $stmt->execute([$token, $current_time]);
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -24,7 +24,7 @@ if ($token) {
             ];
         } else {
             // Kiểm tra xem token có tồn tại nhưng đã hết hạn không
-            $stmt = $pdo->prepare("SELECT reset_expires FROM admin_users WHERE reset_token = ?");
+            $stmt = $pdo->prepare("SELECT reset_expires FROM admins WHERE reset_token = ?");
             $stmt->execute([$token]);
             $expired = $stmt->fetch(PDO::FETCH_ASSOC);
             

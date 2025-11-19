@@ -33,7 +33,7 @@ if ($reset_token) {
             } else {
                 // Kiểm tra token có hợp lệ không - sử dụng PHP time để tránh lỗi múi giờ
                 $current_time = date('Y-m-d H:i:s');
-                $stmt = $pdo->prepare("SELECT id FROM admin_users WHERE reset_token = ? AND reset_expires > ?");
+                $stmt = $pdo->prepare("SELECT id FROM admins WHERE reset_token = ? AND reset_expires > ?");
                 $stmt->execute([$reset_token, $current_time]);
                 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
                 
@@ -42,7 +42,7 @@ if ($reset_token) {
                 } else {
                     // Cập nhật mật khẩu mới
                     $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-                    $stmt = $pdo->prepare("UPDATE admin_users SET password_hash = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?");
+                    $stmt = $pdo->prepare("UPDATE admins SET password_hash = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?");
                     $stmt->execute([$hashed_password, $admin['id']]);
                     
                     // Ghi log
@@ -58,7 +58,7 @@ if ($reset_token) {
                         require_once __DIR__ . '/email-smtp.php';
                         
                         // Lấy email admin từ database
-                        $stmt = $pdo->prepare("SELECT email FROM admin_users WHERE id = ?");
+                        $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = ?");
                         $stmt->execute([$admin['id']]);
                         $admin_info = $stmt->fetch(PDO::FETCH_ASSOC);
                         $admin_email = $admin_info['email'] ?? '';
@@ -125,7 +125,7 @@ if ($reset_token) {
             $reset_token = bin2hex(random_bytes(32));
             $reset_expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
             
-            $stmt = $pdo->prepare("UPDATE admin_users SET reset_token = ?, reset_expires = ? WHERE id = 1");
+            $stmt = $pdo->prepare("UPDATE admins SET reset_token = ?, reset_expires = ? WHERE id = 1");
             $stmt->execute([$reset_token, $reset_expires]);
             
             // Tạo link reset
@@ -136,8 +136,8 @@ if ($reset_token) {
                         require_once __DIR__ . '/email-smtp.php';
                         
                         // Lấy email admin từ database
-                        $stmt = $pdo->prepare("SELECT email FROM admin_users WHERE id = 1");
-                        $stmt->execute();
+                         $stmt = $pdo->prepare("SELECT email FROM admins WHERE id = 1");
+                         $stmt->execute();
                         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
                         $admin_email = $admin['email'] ?? '';
                         
