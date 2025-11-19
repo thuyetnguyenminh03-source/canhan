@@ -4,8 +4,8 @@ return array (
   array (
     'host' => 'localhost',
     'name' => 'acegiove_portfolio',
-    'user' => 'root',
-    'pass' => '',
+    'user' => 'acegiove_portfolio',
+    'pass' => 'thuyet164',
     'charset' => 'utf8mb4',
   ),
   'auth' => 

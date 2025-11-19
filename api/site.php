@@ -23,12 +23,17 @@ $services = $pdo->query('SELECT * FROM services ORDER BY sort_order, id')->fetch
 $skills = $pdo->query('SELECT * FROM skills ORDER BY sort_order, id')->fetchAll();
 $contact = $pdo->query('SELECT * FROM contact_info ORDER BY id DESC LIMIT 1')->fetch();
 $footer = $pdo->query('SELECT * FROM footer_links ORDER BY section, sort_order, id')->fetchAll();
-$projects = $pdo->query('SELECT p.id, p.slug, p.title_vi, p.title_en,
+// Trả projects đang active, sắp xếp theo sort_order
+$projects_stmt = $pdo->query('SELECT p.id, p.slug, p.title_vi, p.title_en, p.is_featured,
   COALESCE((SELECT url FROM project_media WHERE project_id=p.id AND section="cover" ORDER BY sort_order, id LIMIT 1), "") AS cover_url
-  FROM projects p ORDER BY sort_order, p.id')->fetchAll();
+  FROM projects p WHERE p.status="active" ORDER BY p.sort_order, p.id');
+$projects = $projects_stmt->fetchAll();
+
 $testimonials = $pdo->query('SELECT * FROM testimonials WHERE project_id IS NULL ORDER BY sort_order, id')->fetchAll();
 
 echo json_encode([
   'hero'=>$hero,'timeline'=>$timeline,'services'=>$services,'skills'=>$skills,
-  'contact'=>$contact,'footer'=>$footer,'projects'=>$projects,'testimonials'=>$testimonials
+  'contact'=>$contact,'footer'=>$footer,
+  'projects' => $projects,
+  'testimonials'=>$testimonials
 ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);

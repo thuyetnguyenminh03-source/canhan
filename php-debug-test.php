@@ -35,7 +35,7 @@ echo "<h1>🔍 PHP DEBUG COMPREHENSIVE TEST</h1>";
 echo "<p><strong>Domain:</strong> myntex.io.vn</p>";
 echo "<p><strong>Time:</strong> " . date('Y-m-d H:i:s') . "</p>";
 echo "<p><strong>PHP Version:</strong> " . phpversion() . "</p>";
-echo "<p><strong>Server Software:</strong> " . $_SERVER['SERVER_SOFTWARE'] . "</p>";
+echo "<p><strong>Server Software:</strong> " . ($_SERVER['SERVER_SOFTWARE'] ?? 'N/A') . "</p>";
 
 // 1. PHP Configuration Test
 echo "<div class='section'>";

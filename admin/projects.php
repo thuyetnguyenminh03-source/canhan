@@ -12,7 +12,7 @@ $items = [];
 // Lấy danh sách dự án
 try {
   $items = $pdo->query('
-    SELECT id, title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4
+    SELECT id, title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4, status, is_featured, sort_order
     FROM projects
     ORDER BY sort_order ASC, id DESC
   ')->fetchAll();
@@ -38,6 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kpi2 = trim($_POST['kpi2'] ?? '');
     $kpi3 = trim($_POST['kpi3'] ?? '');
     $kpi4 = trim($_POST['kpi4'] ?? '');
+    // New fields
+    $status = trim($_POST['status'] ?? 'draft');
+    $sort_order = (int)($_POST['sort_order'] ?? 0);
+    $is_featured = isset($_POST['is_featured']) ? 1 : 0;
 
     if ($title_vi === '' || $slug === '') {
       $error = 'Tiêu đề (VI) và Slug không được trống.';
@@ -46,19 +50,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare('
           UPDATE projects
           SET title_vi = ?, title_en = ?, slug = ?, description_vi = ?, description_en = ?,
-              meta_role = ?, meta_time = ?, meta_tools = ?, kpi1 = ?, kpi2 = ?, kpi3 = ?, kpi4 = ?
+              meta_role = ?, meta_time = ?, meta_tools = ?, kpi1 = ?, kpi2 = ?, kpi3 = ?, kpi4 = ?,
+              status = ?, sort_order = ?, is_featured = ?
           WHERE id = ?
         ');
         $stmt->execute([$title_vi, $title_en, $slug, $description_vi, $description_en, 
-                       $meta_role, $meta_time, $meta_tools, $kpi1, $kpi2, $kpi3, $kpi4, $id]);
+                       $meta_role, $meta_time, $meta_tools, $kpi1, $kpi2, $kpi3, $kpi4,
+                       $status, $sort_order, $is_featured, $id]);
         redirect_with_message('projects.php', 'Đã cập nhật dự án.');
       } else {
         $stmt = $pdo->prepare('
-          INSERT INTO projects (title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+          INSERT INTO projects (title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4, status, sort_order, is_featured)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ');
         $stmt->execute([$title_vi, $title_en, $slug, $description_vi, $description_en, 
-                       $meta_role, $meta_time, $meta_tools, $kpi1, $kpi2, $kpi3, $kpi4]);
+                       $meta_role, $meta_time, $meta_tools, $kpi1, $kpi2, $kpi3, $kpi4,
+                       $status, $sort_order, $is_featured]);
         redirect_with_message('projects.php', 'Đã thêm dự án mới.');
       }
     }
@@ -84,7 +91,7 @@ if (isset($_GET['edit'])) {
   try {
     $id = (int)$_GET['edit'];
     $stmt = $pdo->prepare('
-      SELECT id, title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4
+      SELECT id, title_vi, title_en, slug, description_vi, description_en, meta_role, meta_time, meta_tools, kpi1, kpi2, kpi3, kpi4, status, is_featured, sort_order
       FROM projects
       WHERE id = ?
     ');
@@ -128,6 +135,31 @@ require __DIR__ . '/_layout-header.php';
           <i class="fas fa-edit text-blue-400 mr-3"></i>
           <?= !empty($editing) ? 'Chỉnh sửa dự án' : 'Thêm dự án mới' ?>
         </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Trạng thái</label>
+            <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+              <option value="active" <?= ($editing['status'] ?? 'active') === 'active' ? 'selected' : '' ?>>Hoạt động (Active)</option>
+              <option value="inactive" <?= ($editing['status'] ?? '') === 'inactive' ? 'selected' : '' ?>>Không hoạt động (Inactive)</option>
+              <option value="draft" <?= ($editing['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Bản nháp (Draft)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Thứ tự sắp xếp</label>
+            <input type="number" name="sort_order" value="<?= htmlspecialchars($editing['sort_order'] ?? '0') ?>" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="0">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="flex items-center space-x-3 cursor-pointer">
+              <input type="checkbox" name="is_featured" value="1" <?= !empty($editing['is_featured']) ? 'checked' : '' ?> class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+              <span class="text-sm font-semibold text-gray-700">Đánh dấu là dự án nổi bật?</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 my-6"></div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <?= csrf_field(); ?>
         <input type="hidden" name="id" value="<?= $editing['id'] ?? '' ?>">
@@ -265,12 +297,11 @@ require __DIR__ . '/_layout-header.php';
             <thead>
               <tr class="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700">
                 <th class="text-left p-4 font-bold rounded-tl-xl">ID</th>
+                <th class="text-left p-4 font-bold">Sắp xếp</th>
                 <th class="text-left p-4 font-bold">Tiêu đề (VI)</th>
-                <th class="text-left p-4 font-bold">Tiêu đề (EN)</th>
                 <th class="text-left p-4 font-bold">Slug</th>
-                <th class="text-left p-4 font-bold">Vai trò</th>
-                <th class="text-left p-4 font-bold">Thời gian</th>
-                <th class="text-left p-4 font-bold">Công cụ</th>
+                <th class="text-left p-4 font-bold">Trạng thái</th>
+                <th class="text-left p-4 font-bold">Nổi bật</th>
                 <th class="text-left p-4 font-bold rounded-tr-xl">Hành động</th>
               </tr>
             </thead>
@@ -282,21 +313,37 @@ require __DIR__ . '/_layout-header.php';
                       <?= $it['id'] ?>
                     </span>
                   </td>
+                  <td class="p-4 text-gray-600 font-semibold"><?= $it['sort_order'] ?></td>
                   <td class="p-4 font-semibold text-gray-800"><?= htmlspecialchars($it['title_vi']) ?></td>
-                  <td class="p-4 text-gray-600"><?= htmlspecialchars($it['title_en']) ?></td>
                   <td class="p-4">
                     <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-mono">
                       <?= htmlspecialchars($it['slug']) ?>
                     </span>
                   </td>
-                  <td class="p-4 text-gray-600 text-xs">
-                    <?= htmlspecialchars($it['meta_role'] ?: '-') ?>
+                  <td class="p-4">
+                    <?php
+                        $status_classes = [
+                            'active' => 'bg-green-100 text-green-800',
+                            'inactive' => 'bg-gray-200 text-gray-600',
+                            'draft' => 'bg-yellow-100 text-yellow-800',
+                        ];
+                        $status_text = [
+                            'active' => 'Hoạt động',
+                            'inactive' => 'Ẩn',
+                            'draft' => 'Nháp',
+                        ];
+                        $status_class = $status_classes[$it['status']] ?? 'bg-gray-100 text-gray-800';
+                    ?>
+                    <span class="px-3 py-1 <?= $status_class ?> rounded-full text-xs font-semibold">
+                      <?= htmlspecialchars($status_text[$it['status']] ?? ucfirst($it['status'])) ?>
+                    </span>
                   </td>
-                  <td class="p-4 text-gray-600 text-xs">
-                    <?= htmlspecialchars($it['meta_time'] ?: '-') ?>
-                  </td>
-                  <td class="p-4 text-gray-600 text-xs">
-                    <?= htmlspecialchars($it['meta_tools'] ?: '-') ?>
+                  <td class="p-4 text-center">
+                    <?php if ($it['is_featured']): ?>
+                      <i class="fas fa-star text-yellow-400 text-lg"></i>
+                    <?php else: ?>
+                      <span class="text-gray-300">-</span>
+                    <?php endif; ?>
                   </td>
                   <td class="p-4">
                     <div class="flex items-center space-x-2">
@@ -318,7 +365,7 @@ require __DIR__ . '/_layout-header.php';
                 </tr>
               <?php endforeach; else: ?>
                 <tr>
-                  <td colspan="5" class="p-12 text-center">
+                  <td colspan="7" class="p-12 text-center">
                     <div class="flex flex-col items-center">
                       <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-folder-open text-gray-400 text-3xl"></i>
